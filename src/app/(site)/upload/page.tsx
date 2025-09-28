@@ -1,3 +1,81 @@
+// "use client";
+
+// import { useState } from "react";
+// import { Button } from "@/components/Button";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// export default function UploadPages() {
+//   const [files, setFiles] = useState<File[]>([]);
+//   const [previews, setPreviews] = useState<string[]>([]);
+
+//   // chọn nhiều file
+//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     if (!e.target.files) return;
+//     const newFiles = Array.from(e.target.files);
+//     setFiles(newFiles);
+
+//     // tạo preview
+//     const previewUrls = newFiles.map((file) => URL.createObjectURL(file));
+//     setPreviews(previewUrls);
+//   };
+
+//   // gọi API upload
+//   const handleUpload = async () => {
+//     if (files.length === 0) return;
+
+//     const formData = new FormData();
+//     files.forEach((file) => formData.append("files", file));
+
+//     try {
+//       const res = await fetch("/api/v1/upload-pages/1", {
+//         method: "POST",
+//         body: formData,
+//       });
+
+//       if (!res.ok) throw new Error("Upload failed");
+//       alert("Upload thành công!");
+//     } catch (error) {
+//       console.error(error);
+//       alert("Upload thất bại!");
+//     }
+//   };
+
+//   return (
+//     <Card className="max-w-3xl mx-auto mt-6">
+//       <CardHeader>
+//         <CardTitle>Upload Pages (Chapter 1)</CardTitle>
+//       </CardHeader>
+//       <CardContent>
+//         <input
+//           type="file"
+//           multiple
+//           accept="image/*"
+//           onChange={handleFileChange}
+//           className="mb-4"
+//         />
+
+//         {previews.length > 0 && (
+//           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+//             {previews.map((src, idx) => (
+//               <img
+//                 key={idx}
+//                 src={src}
+//                 alt={`page-${idx}`}
+//                 className="w-full h-48 object-cover rounded"
+//               />
+//             ))}
+//           </div>
+//         )}
+
+//         <Button onClick={handleUpload} disabled={files.length === 0}>
+//           Upload
+//         </Button>
+//       </CardContent>
+//     </Card>
+//   );
+// }
+
+
 "use client";
 
 import { useState } from "react";

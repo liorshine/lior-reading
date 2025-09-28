@@ -14,6 +14,7 @@ export const Navbar = () => {
     { name: "About", href: "/about", icon: Info },
     { name: "Contact", href: "/contact", icon: Phone },
     { name: "Upload", href: "/upload", icon: Upload },
+    { name: "Admin", href: "/admin", icon: Upload },
   ];
 
   return (
