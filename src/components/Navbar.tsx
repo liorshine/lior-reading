@@ -1,122 +1,78 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
-import { Home, BookOpen, Info, Phone, Upload } from "lucide-react";
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Menu, LayoutDashboard, Users, BookOpen, Home } from 'lucide-react'
 
-export const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
+export default function Navbar() {
+  const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
 
-  const menuItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Reading", href: "/reading", icon: BookOpen },
-    { name: "About", href: "/about", icon: Info },
-    { name: "Contact", href: "/contact", icon: Phone },
-    { name: "Upload", href: "/upload", icon: Upload },
-    { name: "Admin", href: "/admin", icon: Upload },
-  ];
+  const menus = [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/stories', label: 'Stories', icon: BookOpen },
+    { href: '/', label: 'Home Page', icon: Home },
+  ]
 
   return (
-    <>
-      <nav className="fixed w-full z-50 bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <a href="/" className="text-2xl font-bold text-blue-500">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-              Lior Reading
-            </span>
-          </a>
-
-          <div className="hidden md:flex items-center space-x-8 font-medium">
-            {menuItems.map(({ name, href }) => {
-              const isActive = pathname === href;
-              return (
-                <a
-                  key={name}
-                  href={href}
-                  className={`relative transition group ${
-                    isActive
-                      ? "text-green-600 font-semibold"
-                      : "text-gray-700 hover:text-green-600"
-                  }`}
-                >
-                  {name}
-                  <span
-                    className={`absolute left-0 -bottom-1 h-[2px] bg-green-500 transition-all ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
-                  ></span>
-                </a>
-              );
-            })}
-          </div>
-
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(true)}
-              className="text-gray-700 hover:text-green-600 focus:outline-none"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
+    <aside
+      className={`flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 text-gray-200 transition-all duration-300 shadow-lg ${
+        collapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      <div className="relative flex items-center justify-between px-4 py-3 border-b border-gray-700">
+        <div className="relative h-6 overflow-hidden flex-1">
+          <h1
+            className={`absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold tracking-wide text-white whitespace-nowrap transition-all duration-300 ${
+              collapsed ? 'opacity-0 -translate-x-4' : 'opacity-100 translate-x-0'
+            }`}
+          >
+            Admin Panel
+          </h1>
         </div>
 
-        <div
-          className={`fixed top-0 left-0 h-full w-full bg-white z-50 shadow-lg transform transition-transform duration-300 ease-in-out ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 text-gray-300 flex-shrink-0"
         >
-          <div className="flex justify-end p-4">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-700 hover:text-green-600 focus:outline-none"
+          <Menu size={22} className="!transform-none" />
+        </button>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-1">
+        {menus.map((m) => {
+          const Icon = m.icon
+          const isActive = pathname === m.href
+          return (
+            <Link
+              key={m.href}
+              href={m.href}
+              className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'bg-gray-700 text-white shadow-inner'
+                  : 'hover:bg-gray-800 hover:text-white'
+              }`}
+              title={collapsed ? m.label : ''}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex flex-col mt-16">
-            {menuItems.map(({ name, href, icon: Icon }) => {
-              const isActive = pathname === href;
-              return (
-                <a
-                  key={name}
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className={`group relative flex items-center gap-3 px-6 py-4 transition ${
-                    isActive
-                      ? "bg-green-50 text-green-600 font-semibold"
-                      : "text-gray-700 hover:bg-green-50 hover:text-green-600"
-                  }`}
-                >
-                  {Icon && <Icon className="w-5 h-5" />}
-                  <span className="relative z-10">{name}</span>
-                  <span
-                    className={`absolute left-0 bottom-0 h-[2px] bg-green-500 transition-all ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
-                  ></span>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Overlay */}
-        {isOpen && (
-          <div
-            className="fixed inset-0 bg-black/25 z-40"
-            onClick={() => setIsOpen(false)}
-          ></div>
-        )}
+              <Icon
+                size={20}
+                className={`${
+                  isActive ? 'text-indigo-400' : 'text-gray-400 group-hover:text-gray-200'
+                } transition-colors duration-200`}
+              />
+              <span
+                className={`whitespace-nowrap transition-all duration-300 ${
+                  collapsed ? 'opacity-0 -translate-x-4' : 'opacity-100 translate-x-0'
+                }`}
+              >
+                {m.label}
+              </span>
+            </Link>
+          )
+        })}
       </nav>
-
-      {/* Spacer */}
-      <div className="h-20 md:h-20"></div>
-    </>
-  );
-};
+    </aside>
+  )
+}

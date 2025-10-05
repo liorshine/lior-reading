@@ -5,7 +5,6 @@ import Story from "@/models/storyModel"
 
 connect()
 
-// Lấy tất cả stories
 export async function GET() {
   try {
     const stories = await Story.find()
@@ -15,7 +14,6 @@ export async function GET() {
   }
 }
 
-// Tạo mới story
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
