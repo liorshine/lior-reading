@@ -4,19 +4,17 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import StoryDialog from "@/components/StoryDialog"
 import { Story } from "@/types/story"
+import { Button } from "@/components/ui/button"
 
 export default function AdminStoriesPage() {
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
-
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editStory, setEditStory] = useState<Story | null>(null)
-  const [viewStory, setViewStory] = useState<Story | null>(null)
 
   const fetchStories = async () => {
     try {
       const res = await axios.get("/api/stories")
-      console.log("Data from backend:", res.data)
       setStories(res.data.stories || [])
     } catch (err) {
       console.error("Failed to fetch stories", err)
@@ -29,13 +27,11 @@ export default function AdminStoriesPage() {
 
   const openAddDialog = () => {
     setEditStory(null)
-    setViewStory(null)
     setDialogOpen(true)
   }
 
   const openEditDialog = (story: Story) => {
     setEditStory(story)
-    setViewStory(null)
     setDialogOpen(true)
   }
 
@@ -54,6 +50,7 @@ export default function AdminStoriesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa truyện này?")) return
     try {
       await axios.delete(`/api/stories/${id}`)
       fetchStories()
@@ -62,73 +59,53 @@ export default function AdminStoriesPage() {
     }
   }
 
-  if (loading) return <p>Loading...</p>
+  if (loading) return <p>Đang tải...</p>
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">📚 Quản lý Truyện</h1>
-
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={openAddDialog}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Thêm mới truyện
-        </button>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">📚 Quản lý Truyện</h1>
+        <Button variant="default" onClick={openAddDialog}>Thêm mới truyện</Button>
       </div>
 
-      {/* Table */}
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="p-2 border">Tiêu đề</th>
-            <th className="p-2 border">Tác giả</th>
-            <th className="p-2 border">Loại</th>
-            <th className="p-2 border">Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stories.map((story) => (
-            <tr key={story._id} className="border-b">
-              <td className="p-2 border">{story.title}</td>
-              <td className="p-2 border">{story.author}</td>
-              <td className="p-2 border">{story.type === "comic" ? "Truyện tranh" : "Truyện chữ"}</td>
-              <td className="p-2 border">
-                
-                <button
-                  onClick={() => openEditDialog(story)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded mr-2"
-                >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(story._id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-          {stories.length === 0 && (
+      <div className="overflow-x-auto rounded-lg shadow border">
+        <table className="min-w-full bg-white">
+          <thead className="bg-gray-100">
             <tr>
-              <td colSpan={4} className="text-center p-2">Chưa có truyện nào</td>
+              <th className="text-left py-3 px-4 font-medium">Tiêu đề</th>
+              <th className="text-left py-3 px-4 font-medium">Tác giả</th>
+              <th className="text-left py-3 px-4 font-medium">Loại</th>
+              <th className="text-center py-3 px-4 font-medium">Hành động</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {stories.map((story) => (
+              <tr key={story._id} className="border-t hover:bg-gray-50">
+                <td className="py-3 px-4">{story.title}</td>
+                <td className="py-3 px-4">{story.author}</td>
+                <td className="py-3 px-4">{story.type === "comic" ? "Truyện tranh" : "Truyện chữ"}</td>
+                <td className="py-3 px-4 text-center">
+                  <div className="inline-flex gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => openEditDialog(story)}>Sửa</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(story._id)}>Xóa</Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {stories.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center py-3">Chưa có truyện nào</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Dialog */}
       <StoryDialog
         open={dialogOpen}
-        onClose={() => { setDialogOpen(false); setEditStory(null); setViewStory(null) }}
+        onClose={() => setDialogOpen(false)}
         onSave={handleSave}
-        initialData={editStory
-          ? { ...editStory, chapters: editStory.chapters || [] }
-          : viewStory
-          ? { ...viewStory, chapters: viewStory.chapters || [] }
-          : undefined}
+        initialData={editStory ? { ...editStory, chapters: editStory.chapters || [] } : undefined}
       />
     </div>
   )

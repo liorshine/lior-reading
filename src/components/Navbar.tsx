@@ -1,78 +1,223 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, LayoutDashboard, Users, BookOpen, Home } from 'lucide-react'
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, BookOpen, Info, Phone, User, LogOut, X, Shield } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-export default function Navbar() {
-  const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+export const Navbar = () => {
+  const { isLoggedIn, username, role, refresh } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const menus = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/users', label: 'Users', icon: Users },
-    { href: '/admin/stories', label: 'Stories', icon: BookOpen },
-    { href: '/', label: 'Home Page', icon: Home },
-  ]
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/users/logout", { method: "POST" });
+      await refresh(); 
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (pathname.startsWith("/admin")) return null;
+
+  const baseMenuItems = [
+    { name: "Home", href: "/", icon: Home },
+    { name: "Reading", href: "/reading", icon: BookOpen },
+    { name: "About", href: "/about", icon: Info },
+    { name: "Contact", href: "/contact", icon: Phone },
+  ];
+
+  const menuItems =
+    role === "admin"
+      ? [...baseMenuItems, { name: "Admin", href: "/admin", icon: Shield }]
+      : baseMenuItems;
 
   return (
-    <aside
-      className={`flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 text-gray-200 transition-all duration-300 shadow-lg ${
-        collapsed ? 'w-20' : 'w-64'
-      }`}
-    >
-      <div className="relative flex items-center justify-between px-4 py-3 border-b border-gray-700">
-        <div className="relative h-6 overflow-hidden flex-1">
-          <h1
-            className={`absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold tracking-wide text-white whitespace-nowrap transition-all duration-300 ${
-              collapsed ? 'opacity-0 -translate-x-4' : 'opacity-100 translate-x-0'
-            }`}
-          >
-            Admin Panel
-          </h1>
+    <>
+      <nav className="fixed w-full z-50 bg-white shadow-md">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <Link href="/" className="text-2xl font-bold text-blue-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
+              Lior Reading
+            </span>
+          </Link>
+
+          <div className="hidden md:flex items-center space-x-8 font-medium">
+            {menuItems.map(({ name, href }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={name}
+                  href={href}
+                  className={`relative transition group ${
+                    isActive ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-600"
+                  }`}
+                >
+                  {name}
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-green-500 transition-all ${
+                      isActive ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  ></span>
+                </Link>
+              );
+            })}
+
+            {!isLoggedIn ? (
+              <div className="space-x-3">
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 transition"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            ) : (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition"
+                >
+                  <User className="w-5 h-5" />
+                  <span>{username || "User"}</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600"
+                    >
+                      {username || "Profile"}
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="text-gray-700 hover:text-green-600 focus:outline-none"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 text-gray-300 flex-shrink-0"
-        >
-          <Menu size={22} className="!transform-none" />
-        </button>
-      </div>
+        {isOpen && <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setIsOpen(false)} />}
 
-      <nav className="flex-1 p-3 space-y-1">
-        {menus.map((m) => {
-          const Icon = m.icon
-          const isActive = pathname === m.href
-          return (
-            <Link
-              key={m.href}
-              href={m.href}
-              className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? 'bg-gray-700 text-white shadow-inner'
-                  : 'hover:bg-gray-800 hover:text-white'
-              }`}
-              title={collapsed ? m.label : ''}
-            >
-              <Icon
-                size={20}
-                className={`${
-                  isActive ? 'text-indigo-400' : 'text-gray-400 group-hover:text-gray-200'
-                } transition-colors duration-200`}
-              />
-              <span
-                className={`whitespace-nowrap transition-all duration-300 ${
-                  collapsed ? 'opacity-0 -translate-x-4' : 'opacity-100 translate-x-0'
+        <div
+          className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform z-50 transition-transform duration-300 ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="p-4 flex justify-between items-center border-b">
+            <h2 className="text-lg font-semibold text-green-600">Menu</h2>
+            <button onClick={() => setIsOpen(false)}>
+              <X className="w-6 h-6 text-gray-600" />
+            </button>
+          </div>
+          <div className="flex flex-col space-y-3 p-4">
+            {menuItems.map(({ name, href, icon: Icon }) => (
+              <Link
+                key={name}
+                href={href}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-2 px-2 py-2 rounded-md text-gray-700 hover:bg-green-50 hover:text-green-600 ${
+                  pathname === href ? "bg-green-50 text-green-600 font-medium" : ""
                 }`}
               >
-                {m.label}
-              </span>
-            </Link>
-          )
-        })}
+                <Icon className="w-5 h-5" />
+                {name}
+              </Link>
+            ))}
+
+            {!isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="px-3 py-2 border border-green-500 text-green-600 rounded-md text-center hover:bg-green-50"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="px-3 py-2 bg-green-500 text-white rounded-md text-center hover:bg-green-600"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-green-50 text-gray-700 hover:text-green-600"
+                >
+                  <User className="w-5 h-5" />
+                  {username || "Profile"}
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-2 px-2 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </nav>
-    </aside>
-  )
-}
+
+      <div className="h-20 md:h-20"></div>
+    </>
+  );
+};

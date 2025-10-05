@@ -4,9 +4,11 @@ import React, { useEffect, useState } from "react"
 import {useRouter} from "next/navigation"
 import axios from "axios"
 import toast from "react-hot-toast"
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
     const router = useRouter()
+    const { refresh } = useAuth();
     const [loading , setLoading] = React.useState(false)
     const [user, setUser] = React.useState({
         email:"",
@@ -21,6 +23,7 @@ export default function LoginPage() {
             const response = await axios.post("/api/users/login", user)
             console.log("Login success", response.data)
             toast.success("Login success")
+            await refresh();
             router.push("/profile")
             
         } catch (error: any) {
